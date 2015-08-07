@@ -11,4 +11,8 @@
     <string name="upload_photos">Upload photos or videos</string>
     <string name="use_camera">Use camera</string>
     <string name="share_some_text">Share some text!</string>
+    <string name="title_activity_fragment_sheet">FragmentSheetActivity</string>
+    <string name="fragment_text">Text in a fragment</string>
+    <string name="fragment_sheet">Inflate a Fragment</string>
+    <string name="fragment_button">Fragment</string>
 </resources>
