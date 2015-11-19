@@ -7,6 +7,6 @@ public interface OnSheetDismissedListener {
      *
      * @param bottomSheetLayout The bottom sheet which contained the presented sheet.
      */
-    void onDismissed(BottomSheetLayout bottomSheetLayout);
+    void onDismissed(BottomSheetLayout bottomSheetLayout, BottomSheetLayout.DismissalType type);
 
 }

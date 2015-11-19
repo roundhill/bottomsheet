@@ -27,6 +27,11 @@ import android.widget.FrameLayout;
 
 import flipboard.bottomsheet.R;
 
+/***
+ * Forked from Flipboard's version, this version adds the DismissalType enum so that we can restore the note
+ * content if the bottomsheet is canceled
+ */
+
 public class BottomSheetLayout extends FrameLayout {
 
     private static final Property<BottomSheetLayout, Float> SHEET_TRANSLATION = new Property<BottomSheetLayout, Float>(Float.class, "sheetTranslation") {
@@ -68,6 +73,11 @@ public class BottomSheetLayout extends FrameLayout {
         PREPARING,
         PEEKED,
         EXPANDED
+    }
+
+    public enum DismissalType {
+        STANDARD,
+        CANCELED
     }
 
     public interface OnSheetStateChangeListener {
@@ -228,7 +238,7 @@ public class BottomSheetLayout extends FrameLayout {
                     if (state == State.EXPANDED && peekOnDismiss) {
                         peekSheet();
                     } else {
-                        dismissSheet();
+                        dismissSheet(DismissalType.CANCELED);
                     }
                     return true;
                 }
@@ -393,7 +403,7 @@ public class BottomSheetLayout extends FrameLayout {
 
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     if (newSheetTranslation < peekSheetTranslation) {
-                        dismissSheet();
+                        dismissSheet(DismissalType.CANCELED);
                     } else {
                         // If touch is released, go to a new state depending on velocity.
                         // If the velocity is not high enough we use the position of the sheet to determine the new state.
@@ -419,7 +429,7 @@ public class BottomSheetLayout extends FrameLayout {
             // If the user clicks outside of the bottom sheet area we should dismiss the bottom sheet.
             boolean touchOutsideBottomSheet = event.getY() < getHeight() - sheetTranslation || !isXInSheet(event.getX());
             if (event.getAction() == MotionEvent.ACTION_UP && touchOutsideBottomSheet && interceptContentTouch) {
-                dismissSheet();
+                dismissSheet(DismissalType.CANCELED);
                 return true;
             }
 
@@ -621,7 +631,7 @@ public class BottomSheetLayout extends FrameLayout {
                     showWithSheetView(sheetView, viewTransformer, onSheetDismissedListener);
                 }
             };
-            dismissSheet(runAfterDismissThis);
+            dismissSheet(DismissalType.STANDARD, runAfterDismissThis);
             return;
         }
         setState(State.PREPARING);
@@ -694,10 +704,14 @@ public class BottomSheetLayout extends FrameLayout {
      * Dismiss the sheet currently being presented.
      */
     public void dismissSheet() {
-        dismissSheet(null);
+        dismissSheet(DismissalType.STANDARD, null);
+    }
+
+    public void dismissSheet(DismissalType type) {
+        dismissSheet(type, null);
     }
     
-    private void dismissSheet(Runnable runAfterDismissThis) {
+    private void dismissSheet(final DismissalType type, Runnable runAfterDismissThis) {
         if (state == State.HIDDEN) {
             runAfterDismiss = null;
             return;
@@ -721,7 +735,7 @@ public class BottomSheetLayout extends FrameLayout {
                     removeView(sheetView);
 
                     if (onSheetDismissedListener != null) {
-                        onSheetDismissedListener.onDismissed(BottomSheetLayout.this);
+                        onSheetDismissedListener.onDismissed(BottomSheetLayout.this, type);
                     }
 
                     // Remove sheet specific properties
